@@ -33,19 +33,52 @@ def tokenize(expr):
             continue
 
         elif char in OPERATORS:
-            curr_node = Node(operand=char, left=curr_numeric)
-            left = curr_numeric
+            left = int(curr_numeric)
+            curr_node = Node(operand=char, left=left)
             curr_numeric = ""
 
         else:
             raise ValueError(f"invalid value: {char}")
 
     if curr_node:
-        curr_node.right = curr_numeric
+        curr_node.right = int(curr_numeric)
+        curr_numeric = ""
 
     else:
         raise ValueError("not enough expressions...")
 
     print(curr_node)
+    return curr_node
 
-tokenize(test_expression)
+def evaluate(root):
+
+    left = root.left
+    right = root.right
+
+    if isinstance(left, Node):
+        left = evaluate(left)
+
+    operand = root.operand
+
+    if isinstance(right, Node):
+        right = evaluate(right)
+
+    val = None
+
+    if operand == "*":
+        val = left * right
+
+    elif operand == "+":
+        val = left + right
+
+    elif operand == "-":
+        val = left - right
+
+    elif operand == "/":
+        val = left / right
+
+    return val
+
+ast = tokenize(test_expression)
+
+print(test_expression, " = ", evaluate(ast))
