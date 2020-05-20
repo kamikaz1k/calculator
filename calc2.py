@@ -60,31 +60,34 @@ def parse(expr):
     operand = None
     curr_buffer = ""
 
-    while i < length:
+    if i >= length:
+        return root
+
+    char = expr[i]
+
+    while char == " ":
+        i += 1
+        if i >= length:
+            return root
 
         char = expr[i]
 
-        while char == " ":
-            i += 1
-            if i >= length:
-                return root
+    if not char.isnumeric():
+        raise ValueError("expression did not start with a number... " + char)
 
-            char = expr[i]
+    while char.isnumeric():
+        curr_buffer += char
+        i += 1
 
-        if not char.isnumeric():
-            raise ValueError("expression did not start with a number... " + char)
+        if i >= length:
+            raise Error("end of the line...")
 
-        while char.isnumeric():
-            curr_buffer += char
-            i += 1
+        char = expr[i]
 
-            if i >= length:
-                raise Error("end of the line...")
+    last_number = int(curr_buffer)
+    curr_buffer = ""
 
-            char = expr[i]
-
-        last_number = int(curr_buffer)
-        curr_buffer = ""
+    while i < length:
 
         while char == " ":
             i += 1
@@ -112,7 +115,7 @@ def parse(expr):
             char = expr[i]
 
         if not char.isnumeric():
-            raise ValueError("expression did not start with a number..." + char)
+            raise ValueError("expression did not end with a number..." + char)
 
         while char.isnumeric():
             curr_buffer += char
@@ -123,7 +126,14 @@ def parse(expr):
 
             char = expr[i]
 
-        curr_node = Node(operand=operand, left=last_number, right=int(curr_buffer))
+        if not curr_node:
+            curr_node = Node(operand=operand, left=last_number, right=int(curr_buffer))
+
+        else:
+            tmp = Node(operand=operand, left=curr_node.right, right=int(curr_buffer))
+            curr_node.right = tmp
+            curr_node = tmp
+
         curr_buffer = ""
 
         if not root:
@@ -138,3 +148,7 @@ print(parse("1 * 2"))
 print(parse("1 / 3"))
 
 print(parse("1 - 4"))
+
+print(parse("1 - 4 + 1"))
+
+print(parse("1 - 4 + 1 * 4"))
