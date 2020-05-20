@@ -141,14 +141,49 @@ def parse(expr):
 
     return root
 
-print(parse("1 + 1"))
+def evaluate(root):
 
-print(parse("1 * 2"))
+    left = root.left
+    right = root.right
 
-print(parse("1 / 3"))
+    if isinstance(left, Node):
+        left = evaluate(left)
 
-print(parse("1 - 4"))
+    operand = root.operand
 
-print(parse("1 - 4 + 1"))
+    if isinstance(right, Node):
+        right = evaluate(right)
 
-print(parse("1 - 4 + 1 * 4"))
+    val = None
+
+    if operand == "*":
+        val = left * right
+
+    elif operand == "+":
+        val = left + right
+
+    elif operand == "-":
+        val = left - right
+
+    elif operand == "/":
+        val = left / right
+
+    # print("Expression", val)
+    return val
+
+def parse_and_eval(expr):
+    ast = parse(expr)
+    # print("AST", ast)
+    print(expr, " = ", evaluate(ast))
+
+parse_and_eval("1 + 1")
+
+parse_and_eval("1 * 2")
+
+parse_and_eval("1 / 3")
+
+parse_and_eval("1 - 4")
+
+parse_and_eval("1 - 4 + 1")
+
+parse_and_eval("1 - 4 + 1 * 4")
