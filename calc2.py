@@ -130,14 +130,11 @@ def parse(expr):
             curr_node = Node(operand=operand, left=last_number, right=int(curr_buffer))
 
         else:
-            tmp = Node(operand=operand, left=curr_node.right, right=int(curr_buffer))
-            curr_node.right = tmp
-            curr_node = tmp
+            curr_node = Node(operand=operand, left=curr_node, right=int(curr_buffer))
 
         curr_buffer = ""
 
-        if not root:
-            root = curr_node
+        root = curr_node
 
     return root
 
@@ -168,7 +165,6 @@ def evaluate(root):
     elif operand == "/":
         val = left / right
 
-    # print("Expression", val)
     return val
 
 def parse_and_eval(expr):
