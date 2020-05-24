@@ -34,7 +34,10 @@
 
 # scan for next number
 
-OPERATORS = {"*","+","-","/"}
+MULT = "*"
+DIV = "/"
+
+OPERATORS = {MULT, DIV, "+", "-"}
 
 
 class Node:
@@ -130,7 +133,15 @@ def parse(expr):
             curr_node = Node(operand=operand, left=last_number, right=int(curr_buffer))
 
         else:
-            curr_node = Node(operand=operand, left=curr_node, right=int(curr_buffer))
+            if operand in (MULT, DIV):
+                # if priority operand, ensure it is inserted below
+                tmp = Node(operand=operand, left=curr_node.right, right=int(curr_buffer))
+                curr_node.right = tmp
+
+            else:
+                curr_node = Node(operand=operand, left=curr_node, right=int(curr_buffer))
+
+
 
         curr_buffer = ""
 
@@ -170,7 +181,8 @@ def evaluate(root):
 def parse_and_eval(expr):
     ast = parse(expr)
     # print("AST", ast)
-    print(expr, " = ", evaluate(ast))
+    result = evaluate(ast)
+    print(expr, " = ", result, f"| eval ({eval(expr) == result}):", eval(expr))
 
 parse_and_eval("1 + 1")
 
@@ -183,3 +195,5 @@ parse_and_eval("1 - 4")
 parse_and_eval("1 - 4 + 1")
 
 parse_and_eval("1 - 4 + 1 * 4")
+
+parse_and_eval("1 * 4 + 1 * 4 + 5 * 2")
