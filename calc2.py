@@ -1,43 +1,10 @@
-# "1 + 1"
-
-# + 1 1
-
-
-
-# 1 + 1 * 3
-
-#     +
-#   1   *
-#     1   3
-
-
-
-# scan the first number
-
-# store it as last_number
-
-# ignore spaces
-
-# expect operand
-
-# ignore spaces
-
-# scan for next number
-
-# make node with operand and values
-
-# ignore spaces
-
-# scan for operand
-
-# ignore spaces
-
-# scan for next number
-
+EXP = "^"
 MULT = "*"
 DIV = "/"
+ADD = "+"
+SUB = "-"
 
-OPERATORS = {MULT, DIV, "+", "-"}
+OPERATORS = {EXP, MULT, DIV, ADD, SUB}
 
 
 class Node:
@@ -133,14 +100,29 @@ def parse(expr):
             curr_node = Node(operand=operand, left=last_number, right=int(curr_buffer))
 
         else:
-            if operand in (MULT, DIV):
-                # if priority operand, ensure it is inserted below
-                tmp = Node(operand=operand, left=curr_node.right, right=int(curr_buffer))
-                curr_node.right = tmp
-
-            else:
+            if operand == EXP:
+                # if exponent, it is highest priority so insert as leaf
                 curr_node = Node(operand=operand, left=curr_node, right=int(curr_buffer))
 
+            elif operand in (ADD, SUB):
+                # if curr_node is add/sub, it is higher priority so insert as leaf
+                if curr_node.operand == (ADD, SUB):
+                    tmp = Node(operand=operand, left=curr_node.right, right=int(curr_buffer))
+                    curr_node.right = tmp
+
+                # otherwise insert as parent
+                else:
+                    curr_node = Node(operand=operand, left=curr_node, right=int(curr_buffer))
+
+            else:
+                # if curr_node is exp, it is lower priority so insert as parent
+                if curr_node.operand == EXP:
+                    curr_node = Node(operand=operand, left=curr_node, right=int(curr_buffer))
+
+                # otherwise insert as leaf
+                else:
+                    tmp = Node(operand=operand, left=curr_node.right, right=int(curr_buffer))
+                    curr_node.right = tmp
 
 
         curr_buffer = ""
@@ -176,13 +158,34 @@ def evaluate(root):
     elif operand == "/":
         val = left / right
 
+    elif operand == EXP:
+        val = left ** right
+
     return val
 
-def parse_and_eval(expr):
-    ast = parse(expr)
-    # print("AST", ast)
-    result = evaluate(ast)
-    print(expr, " = ", result, f"| eval ({eval(expr) == result}):", eval(expr))
+
+import time
+def parse_and_eval(input_expr):
+
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+    start = time.time()
+    actual = parse(input_expr)
+    actual = evaluate(actual)
+    duration = time.time() - start
+    duration = duration * 1_000_000
+
+    expected_value = eval(input_expr.replace(EXP, "**"))
+    result = actual == expected_value
+
+    print("Result: ", OKGREEN if result else FAIL, result, ENDC, "time: {:7.3f} ns".format(duration), "Actual: ", actual, " Expected: ", expected_value, " Input: ", input_expr)
 
 parse_and_eval("1 + 1")
 
@@ -197,3 +200,5 @@ parse_and_eval("1 - 4 + 1")
 parse_and_eval("1 - 4 + 1 * 4")
 
 parse_and_eval("1 * 4 + 1 * 4 + 5 * 2")
+
+parse_and_eval("2 ^ 3")
