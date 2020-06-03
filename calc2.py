@@ -16,7 +16,10 @@ class Node:
     def __repr__(self):
         return f"<Node operand=`{self.operand}` left=`{self.left}` right=`{self.right}` />"
 
-    __str__ = __repr__
+    # __str__ = __repr__
+
+    def __str__(self):
+        return f"({self.left} {self.operand} {self.right})"
 
 
 def parse(expr):
@@ -29,6 +32,8 @@ def parse(expr):
     last_number = None
     operand = None
     curr_buffer = ""
+
+    ptr_to_most_recent_node_with_value = None
 
     if i >= length:
         return root
@@ -98,32 +103,37 @@ def parse(expr):
 
         if not curr_node:
             curr_node = Node(operand=operand, left=last_number, right=int(curr_buffer))
+            ptr_to_most_recent_node_with_value = curr_node
 
         else:
             if operand == EXP:
                 # if exponent, it is highest priority so insert as leaf
-                curr_node = Node(operand=operand, left=curr_node, right=int(curr_buffer))
+                tmp = Node(operand=operand, left=ptr_to_most_recent_node_with_value.right, right=int(curr_buffer))
+                ptr_to_most_recent_node_with_value.right = tmp
+                ptr_to_most_recent_node_with_value = tmp
 
             elif operand in (ADD, SUB):
                 # if curr_node is add/sub, it is higher priority so insert as leaf
                 if curr_node.operand == (ADD, SUB):
                     tmp = Node(operand=operand, left=curr_node.right, right=int(curr_buffer))
                     curr_node.right = tmp
-
+                    ptr_to_most_recent_node_with_value = tmp
                 # otherwise insert as parent
                 else:
                     curr_node = Node(operand=operand, left=curr_node, right=int(curr_buffer))
+                    ptr_to_most_recent_node_with_value = curr_node
 
             else:
                 # if curr_node is exp, it is lower priority so insert as parent
                 if curr_node.operand == EXP:
                     curr_node = Node(operand=operand, left=curr_node, right=int(curr_buffer))
+                    ptr_to_most_recent_node_with_value = curr_node
 
                 # otherwise insert as leaf
                 else:
                     tmp = Node(operand=operand, left=curr_node.right, right=int(curr_buffer))
                     curr_node.right = tmp
-
+                    ptr_to_most_recent_node_with_value = tmp
 
         curr_buffer = ""
 
@@ -177,14 +187,15 @@ def parse_and_eval(input_expr):
     UNDERLINE = '\033[4m'
 
     start = time.time()
-    actual = parse(input_expr)
-    actual = evaluate(actual)
+    ast = parse(input_expr)
+    actual = evaluate(ast)
     duration = time.time() - start
     duration = duration * 1_000_000
 
     expected_value = eval(input_expr.replace(EXP, "**"))
     result = actual == expected_value
 
+    # print("AST", ast)
     print("Result: ", OKGREEN if result else FAIL, result, ENDC, "time: {:7.3f} ns".format(duration), "Actual: ", actual, " Expected: ", expected_value, " Input: ", input_expr)
 
 parse_and_eval("1 + 1")
@@ -202,3 +213,7 @@ parse_and_eval("1 - 4 + 1 * 4")
 parse_and_eval("1 * 4 + 1 * 4 + 5 * 2")
 
 parse_and_eval("2 ^ 3")
+
+parse_and_eval("1 + 2 * 3 ^ 2")
+
+parse_and_eval("5 ^ 4 / 1 + 2 * 3 ^ 2")
